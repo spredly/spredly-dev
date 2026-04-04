@@ -3,7 +3,7 @@ import enum
 from typing import Annotated
 
 from sqlalchemy import Boolean, ForeignKey, Index, UniqueConstraint, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.db.base import Base, str_64, str_128
 
@@ -59,19 +59,15 @@ class Match(Base):
     start_time: Mapped[datetime.datetime] = mapped_column(nullable=False, index=True)
     created_at: Mapped[created_at]
 
-
-class Team(Base):
-    __tablename__ = "team"
-
-    id: Mapped[intpk]
-    name: Mapped[str_64] = mapped_column(nullable=False)
-    league_id: Mapped[int] = mapped_column(
-        ForeignKey("league.id", ondelete="CASCADE"), nullable=False, index=True
+    members: Mapped[list["MatchMember"]] = relationship(
+        "MatchMember", back_populates="match", cascade="all, delete-orphan"
     )
 
-    __table_args__ = (
-        UniqueConstraint("name", "league_id", name="uq_team_combination"),
+    parent: Mapped["Match | None"] = relationship(
+        "Match", remote_side=[id], back_populates="children"
     )
+
+    children: Mapped[list["Match"]] = relationship("Match", back_populates="parent")
 
 
 class MatchMember(Base):
@@ -92,6 +88,38 @@ class MatchMember(Base):
         UniqueConstraint(
             "match_id", "home_id", "away_id", name="uq_match_member_combination"
         ),
+    )
+
+    match: Mapped["Match"] = relationship("Match", back_populates="members")
+
+    home_team: Mapped["Team"] = relationship(
+        "Team", foreign_keys=[home_id], back_populates="home_matches"
+    )
+
+    away_team: Mapped["Team"] = relationship(
+        "Team", foreign_keys=[away_id], back_populates="away_matches"
+    )
+
+
+class Team(Base):
+    __tablename__ = "team"
+
+    id: Mapped[intpk]
+    name: Mapped[str_64] = mapped_column(nullable=False)
+    league_id: Mapped[int] = mapped_column(
+        ForeignKey("league.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    __table_args__ = (
+        UniqueConstraint("name", "league_id", name="uq_team_combination"),
+    )
+
+    home_matches: Mapped[list["MatchMember"]] = relationship(
+        "MatchMember", foreign_keys=[MatchMember.home_id], back_populates="home_team"
+    )
+
+    away_matches: Mapped[list["MatchMember"]] = relationship(
+        "MatchMember", foreign_keys=[MatchMember.away_id], back_populates="away_team"
     )
 
 

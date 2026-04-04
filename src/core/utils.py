@@ -46,9 +46,7 @@ def iso_to_utc(iso_str: str):
 
 
 def gmt_to_utc(gmt_str: str):
-    return datetime.strptime(gmt_str, "%a, %d %b %Y %H:%M:%S GMT").replace(
-        tzinfo=None
-    )
+    return datetime.strptime(gmt_str, "%a, %d %b %Y %H:%M:%S GMT").replace(tzinfo=None)
 
 
 def utc_to_msc(utc_data: str):

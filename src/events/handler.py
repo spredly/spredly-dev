@@ -1,51 +1,47 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import TypeVar, cast
 
 from pydantic import BaseModel
 
 from src.core.logger import get_module_logger
-from src.events.schemas import PrimaryEvent, SecondaryEvent
+from src.events.schemas import EventsResultResponse
+from src.services.results_service import ResultsService
 
 logger = get_module_logger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 
-_HANDLERS: dict[type[BaseModel], Callable[[BaseModel], None]] = {}
+_HANDLERS: dict[type[BaseModel], Callable[[BaseModel], Awaitable[None]]] = {}
 
-def register_handler(model: type[T]) -> Callable[[Callable[[T], None]], Callable[[T], None]]:
 
-    def decorator(func: Callable[[T], None]) -> Callable[[T], None]:
-        _HANDLERS[model] = cast(Callable[[BaseModel], None], func)
+def register_handler(
+    model: type[T],
+) -> Callable[[Callable[[T], Awaitable[None]]], Callable[[T], Awaitable[None]]]:
+    def decorator(
+        func: Callable[[T], Awaitable[None]],
+    ) -> Callable[[T], Awaitable[None]]:
+        _HANDLERS[model] = cast(Callable[[BaseModel], Awaitable[None]], func)
         return func
 
     return decorator
 
 
-@register_handler(PrimaryEvent)
-def handle_test(event: PrimaryEvent) -> None:
-    logger.error("[handler] Test event received: value=%s", event.event_type)
+@register_handler(EventsResultResponse)
+async def handle_match_results(response: EventsResultResponse) -> None:
+    await ResultsService.save_results(response.events)
 
 
-@register_handler(SecondaryEvent)
-def handle_user_created(event: SecondaryEvent) -> None:
-    logger.error(
-        "[handler] User created: user_id=%s email=%s",
-        event.event_type,
-        event.event_type,
-    )
-
-
-def handle_event(event: BaseModel) -> None:
+async def handle_event(event: BaseModel) -> None:
     handler = _HANDLERS.get(type(event))
     if handler is not None:
-        handler(event)
+        await handler(event)
         return
 
     for model, fallback_handler in _HANDLERS.items():
         if isinstance(event, model):
-            fallback_handler(event)
+            await fallback_handler(event)
             return
 
     raise ValueError(f"No handler registered for event type: {type(event).__name__}")

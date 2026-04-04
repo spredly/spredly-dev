@@ -1,16 +1,46 @@
 from datetime import datetime, timedelta
+from typing import List, Tuple
 
 from sqlalchemy import (asc, case, delete, desc, distinct, func, or_, select,
                         update)
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import aliased, selectinload
 
 from src.core.models import Bet, League, Match, MatchMember, MatchResult, Team
-from src.core.utils import to_dict_for_insert
 
 
 class MatchRepository:
+
+    @staticmethod
+    async def get_matches_by_date(
+        date: datetime,
+        sport_id: int,
+        session: AsyncSession,
+    ) -> List[Match]:
+        start_date = date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = start_date + timedelta(days=1)
+
+        stmt = (
+            select(Match)
+            .join(League, League.id == Match.league_id)
+            .options(
+                selectinload(Match.members),
+                selectinload(Match.members).selectinload(MatchMember.home_team),
+                selectinload(Match.members).selectinload(MatchMember.away_team),
+            )
+            .where(
+                League.sport_id == sport_id,
+                Match.start_time >= start_date,
+                Match.start_time < end_date,
+                Match.parent_id.is_(None),
+            )
+            .order_by(Match.start_time.asc())
+        )
+
+        result = await session.execute(stmt)
+        return result.scalars().all()
+
     @staticmethod
     async def get_upcoming_matches(session: AsyncSession):
         stmt = (

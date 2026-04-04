@@ -10,17 +10,24 @@ logger = get_module_logger(__name__)
 
 
 class StraightParserError(Exception):
-    """
-    Straight Parser Error
-    """
+    """Straight Parser Error"""
+
+    pass
+
+
+class RelatedParserError(Exception):
+    """Related Parser Error"""
+
+    pass
+
+
+class ArchiveParserError(Exception):
+    """Archive Parser Error"""
 
     pass
 
 
 async def startup(ctx):
-    async with db_helper.session_factory() as session:
-        await ParserArchiveService.archive_and_clear_matches(session=session)
-
     async with db_helper.session_factory() as session:
         await ParserHeadService.collect_heads(sports, session=session)
 
@@ -44,9 +51,12 @@ async def get_straight(ctx):
             matches = await MatchRepository.get_upcoming_matches(session=session)
         await ParserStraightService.collect_content(matches=matches)
     except Exception as e:
-        logger.error(StraightParserError(e))
+        logger.error(RelatedParserError(e))
 
 
 async def archive_matches(ctx):
-    async with db_helper.session_factory() as session:
-        await ParserArchiveService.archive_and_clear_matches(session=session)
+    try:
+        async with db_helper.session_factory() as session:
+            await ParserArchiveService.archive_and_clear_matches(session=session)
+    except Exception as e:
+        logger.error(ArchiveParserError(e))

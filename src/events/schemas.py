@@ -1,17 +1,33 @@
-from pydantic import BaseModel, TypeAdapter, Field
-from typing import Literal, Annotated
+from typing import Annotated, List, Literal
 
-class PrimaryEvent(BaseModel):
-    event_type: Literal["primary"]
-    value: str
+from pydantic import BaseModel, Field, TypeAdapter
 
-class SecondaryEvent(BaseModel):
-    event_type: Literal["secondary"]
-    value: str
+from src.events.queues import Queues
+
+
+class QueueEvent(BaseModel):
+    queue: Queues
+
+
+class _EventResult(BaseModel):
+    event_id: int
+    home_team_name: str
+    away_team_name: str
+
+
+class EventsResultRequest(QueueEvent):
+    event_type: Literal["events_result"]
+    events: List[_EventResult]
+    date: str
+
+
+class EventsResultResponse(QueueEvent):
+    event_type: Literal["events_result"]
+    events: list
 
 
 IncomingEvent = Annotated[
-    PrimaryEvent | SecondaryEvent,
+    EventsResultRequest,
     Field(discriminator="event_type"),
 ]
 

@@ -17,6 +17,24 @@ files = [
 typing_extensions = {version = "*", markers = "python_version < \"3.11\""}
 
 [[package]]
+name = "aio-pika"
+version = "9.6.2"
+description = "Wrapper around the aiormq for asyncio and humans"
+optional = false
+python-versions = "<4,>=3.10"
+groups = ["main"]
+markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
+files = [
+    {file = "aio_pika-9.6.2-py3-none-any.whl", hash = "sha256:2a5478af920d169795071c9c09c7542cd8cdece60438cf7804533dcbcce93b7f"},
+    {file = "aio_pika-9.6.2.tar.gz", hash = "sha256:c49e9246080dc8ffa1bb0e4aca407bf3d8ad78c3ee3a93df88b68fe65d7a49b9"},
+]
+
+[package.dependencies]
+aiormq = ">=6.8,<7"
+exceptiongroup = {version = ">=1,<2", markers = "python_full_version < \"3.11\""}
+yarl = "*"
+
+[[package]]
 name = "aiocache"
 version = "0.12.3"
 description = "multi backend asyncio cache"
@@ -239,6 +257,23 @@ typing-extensions = "*"
 
 [package.extras]
 hiredis = ["hiredis (>=1.0)"]
+
+[[package]]
+name = "aiormq"
+version = "6.9.4"
+description = "Pure python AMQP asynchronous client library"
+optional = false
+python-versions = "<4,>=3.10"
+groups = ["main"]
+markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
+files = [
+    {file = "aiormq-6.9.4-py3-none-any.whl", hash = "sha256:726a8586695e863fba68cf88842065ab12348c9438dcebdfc9d0bddaf6083277"},
+    {file = "aiormq-6.9.4.tar.gz", hash = "sha256:0e7c01b662804e1cc7ace9a17794e8c1192a27fc2afa96162362a6e61ae8e8ef"},
+]
+
+[package.dependencies]
+pamqp = "3.3.0"
+yarl = "*"
 
 [[package]]
 name = "aiosignal"
@@ -2815,6 +2850,23 @@ files = [
     {file = "packaging-25.0-py3-none-any.whl", hash = "sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484"},
     {file = "packaging-25.0.tar.gz", hash = "sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f"},
 ]
+
+[[package]]
+name = "pamqp"
+version = "3.3.0"
+description = "RabbitMQ Focused AMQP low-level library"
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
+files = [
+    {file = "pamqp-3.3.0-py2.py3-none-any.whl", hash = "sha256:c901a684794157ae39b52cbf700db8c9aae7a470f13528b9d7b4e5f7202f8eb0"},
+    {file = "pamqp-3.3.0.tar.gz", hash = "sha256:40b8795bd4efcf2b0f8821c1de83d12ca16d5760f4507836267fd7a02b06763b"},
+]
+
+[package.extras]
+codegen = ["lxml", "requests", "yapf"]
+testing = ["coverage", "flake8", "flake8-comprehensions", "flake8-deprecated", "flake8-import-order", "flake8-print", "flake8-quotes", "flake8-rst-docstrings", "flake8-tuple", "yapf"]
 
 [[package]]
 name = "pandas"
@@ -5502,4 +5554,4 @@ requests = "*"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "839fafe1b2685389c9f13a768ee02c557af5e1137ed271051f67067486fabe66"
+content-hash = "c1c8e71007dcca7722ccdfe57758fe1a1aa88a7f175685b6bfca8b6f6fe047b2"

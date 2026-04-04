@@ -104,8 +104,37 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
     networks:
       - web
+  
+  receiver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m src.events.receiver
+    env_file:
+      - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src:/code/src
+      - .env:/code/.env
+      - ./storage:/code/storage
+      - ./migrations:/code/migrations
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    networks:
+      - web
+
   
 volumes:
   postgres-data:
