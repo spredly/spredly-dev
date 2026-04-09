@@ -1,10 +1,11 @@
 import asyncio
 import datetime
 
+import fastapi
 from src.core.db.db_helper import db_helper
 from src.core.logger import get_module_logger
 from src.events.queues import Queues
-from src.events.schemas import EventsResultRequest, _EventResult
+from src.events.schemas import EventsResultRequest, _EventResultRequest, _EventResultResponse
 from src.events.sender import send_event
 from src.repositories.match_repository import MatchRepository
 
@@ -27,7 +28,7 @@ class ResultsService:
                     home_team_name = member.home_team.name
                     away_team_name = member.away_team.name
 
-                event_dto = _EventResult(
+                event_dto = _EventResultRequest(
                     event_id=event_id,
                     home_team_name=home_team_name,
                     away_team_name=away_team_name,
@@ -37,7 +38,7 @@ class ResultsService:
             date_dto = date.date().isoformat()
             events_result_request = EventsResultRequest(
                 queue=Queues.MATCH_REQUESTS,
-                event_type="events_result",
+                event_type="events_result_request",
                 date=date_dto,
                 events=events_dtos,
             )
@@ -45,9 +46,10 @@ class ResultsService:
             await send_event(events_result_request)
 
     @staticmethod
-    async def save_results(events):
-        logger.error(events)
-
+    async def save_results(events: list[_EventResultResponse]) -> None:
+        async with db_helper.session_factory() as session:
+            for event in events:
+                await MatchRepository.update_match_result(event=event, session=session)
 
 async def main():
     target_date = datetime.datetime(2026, 3, 30)

@@ -67,6 +67,22 @@ class Match(Base):
         "Match", remote_side=[id], back_populates="children"
     )
 
+    status_id: Mapped[int | None] = mapped_column(nullable=True, index=True)
+    status_name: Mapped[str] = mapped_column(nullable=False, default="unknown", index=True)
+
+    total_home_score: Mapped[int | None] = mapped_column(nullable=True)
+    total_away_score: Mapped[int | None] = mapped_column(nullable=True)
+
+    winning_team: Mapped[str | None] = mapped_column(nullable=True)
+
+    first_goal_team: Mapped[str | None] = mapped_column(nullable=True)
+    first_goal_minute: Mapped[int | None] = mapped_column(nullable=True)
+    
+    results: Mapped[list["MatchResult"]] = relationship(
+        back_populates="match",
+        cascade="all, delete-orphan",
+    )
+
     children: Mapped[list["Match"]] = relationship("Match", back_populates="parent")
 
 
@@ -177,26 +193,32 @@ class InviteCode(Base):
 
 
 class MatchResult(Base):
-
     __tablename__ = "match_result"
 
     id: Mapped[intpk]
+
     match_id: Mapped[int] = mapped_column(
-        ForeignKey("match.id", ondelete="CASCADE"), nullable=False, index=True
+        ForeignKey("match.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
-    period: Mapped[int] = mapped_column(nullable=False, index=True)
-    description: Mapped[str] = mapped_column(nullable=False, index=True)
+
+    period_order: Mapped[int] = mapped_column(nullable=False, index=True)
+    period_type: Mapped[str] = mapped_column(nullable=False, index=True)
+
     team_1_score: Mapped[int] = mapped_column(nullable=False)
     team_2_score: Mapped[int] = mapped_column(nullable=False)
 
+    external_period_id: Mapped[int | None] = mapped_column(nullable=True)
+
+    match: Mapped["Match"] = relationship(back_populates="results")
+
     __table_args__ = (
-        UniqueConstraint("match_id", "period", name="uq_match_result_combination"),
+        UniqueConstraint("match_id", "period_order", name="uq_match_result_match_period"),
     )
 
 
 # Архивные таблицы
-
-
 class MatchArchive(Base):
     __tablename__ = "match_archive"
 
@@ -207,6 +229,18 @@ class MatchArchive(Base):
     league_id: Mapped[int] = mapped_column(ForeignKey("league.id"), nullable=False)
     start_time: Mapped[datetime.datetime] = mapped_column(nullable=False, index=True)
     created_at: Mapped[datetime.datetime] = mapped_column(nullable=False)
+
+    status_id: Mapped[int | None] = mapped_column(nullable=True, index=True)
+    status_name: Mapped[str] = mapped_column(nullable=False, default="unknown", index=True)
+
+    total_home_score: Mapped[int | None] = mapped_column(nullable=True)
+    total_away_score: Mapped[int | None] = mapped_column(nullable=True)
+
+    winning_team: Mapped[str | None] = mapped_column(nullable=True)
+
+    first_goal_team: Mapped[str | None] = mapped_column(nullable=True)
+    first_goal_minute: Mapped[int | None] = mapped_column(nullable=True)
+
     archived_at: Mapped[datetime.datetime] = mapped_column(
         default=datetime.datetime.utcnow, nullable=False
     )
@@ -276,16 +310,18 @@ class MatchResultArchive(Base):
     match_id: Mapped[int] = mapped_column(
         ForeignKey("match_archive.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    period: Mapped[int] = mapped_column(nullable=False, index=True)
-    description: Mapped[str] = mapped_column(nullable=False, index=True)
+    period_order: Mapped[int] = mapped_column(nullable=False, index=True)
+    period_type: Mapped[str] = mapped_column(nullable=False, index=True)
+
     team_1_score: Mapped[int] = mapped_column(nullable=False)
     team_2_score: Mapped[int] = mapped_column(nullable=False)
+
+    external_period_id: Mapped[int | None] = mapped_column(nullable=True)
+
     archived_at: Mapped[datetime.datetime] = mapped_column(
         default=datetime.datetime.utcnow, nullable=False
     )
 
     __table_args__ = (
-        UniqueConstraint(
-            "match_id", "period", name="uq_match_result_archive_combination"
-        ),
+        UniqueConstraint("match_id", "period_order", name="uq_match_result_match_archive_period"),
     )

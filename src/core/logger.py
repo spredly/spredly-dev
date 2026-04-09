@@ -1,7 +1,4 @@
 import logging
-import os
-from logging.handlers import RotatingFileHandler
-
 
 def get_module_logger(mod_name):
     """

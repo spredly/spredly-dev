@@ -9,25 +9,29 @@ class QueueEvent(BaseModel):
     queue: Queues
 
 
-class _EventResult(BaseModel):
+class _EventResultRequest(BaseModel):
     event_id: int
     home_team_name: str
     away_team_name: str
 
+class _EventResultResponse(BaseModel):
+    event_id: int
+    score1: int
+    score2: int
 
 class EventsResultRequest(QueueEvent):
-    event_type: Literal["events_result"]
-    events: List[_EventResult]
+    event_type: Literal["events_result_request"]
+    events: List[_EventResultRequest]
     date: str
 
 
 class EventsResultResponse(QueueEvent):
-    event_type: Literal["events_result"]
-    events: list
+    event_type: Literal["events_result_response"]
+    events: List[_EventResultResponse]
 
 
 IncomingEvent = Annotated[
-    EventsResultRequest,
+    EventsResultRequest | EventsResultResponse,
     Field(discriminator="event_type"),
 ]
 

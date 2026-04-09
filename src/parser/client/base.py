@@ -22,7 +22,7 @@ async def get_request(
     headers: dict,
     params: dict = None,
     cookies: dict = None,
-    use_proxy: bool = True,
+    use_proxy: bool = False,
 ) -> Response:
     connector = TCPConnector(limit=2000)
     async with aiohttp.ClientSession(connector=connector, cookies=cookies) as session:

@@ -8,9 +8,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased, selectinload
 
 from src.core.models import Bet, League, Match, MatchMember, MatchResult, Team
-
+from src.events.schemas import _EventResultResponse
 
 class MatchRepository:
+
+    @staticmethod
+    async def update_match_result(
+        event: _EventResultResponse,
+        session: AsyncSession,
+    ) -> None:
+        stmt = (
+            update(Match)
+            .where(Match.id == event.event_id)
+            .values(
+                total_home_score=event.score1,
+                total_away_score=event.score2,
+            )
+        )
+        await session.execute(stmt)
+        await session.commit()
 
     @staticmethod
     async def get_matches_by_date(

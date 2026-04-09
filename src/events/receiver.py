@@ -34,7 +34,7 @@ async def _process_message(message: AbstractIncomingMessage) -> None:
 
 
 async def receive_events() -> None:
-    attempts = 5
+    attempts = 3
 
     for attempt in range(attempts):
         try:
@@ -57,7 +57,10 @@ async def receive_events() -> None:
             )
             await asyncio.sleep(5)
         finally:
-            await rabbitmq.close()
+            try:
+                await rabbitmq.close()
+            except Exception as e:
+                logger.error("[receiver] error while closing connection: %s", e)
 
 
 async def main() -> None:
